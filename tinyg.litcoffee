@@ -25,9 +25,9 @@ The express framework, mostly for making responding to http requests nice.
 I will distract you from my flaws using pretty colours in my text output. Also, less boring.
 
 	clc = require("cli-color")
-	error = clc.red.bold
+	error = clc.redBright.bold
 	warn = clc.yellow
-	notice = clc.blue
+	notice = clc.white
 
 Right now, I only interface to one device at a time, and I use this variable to keep track of its status:
 
@@ -42,11 +42,12 @@ Need 404 response and restrictions on which files may be served.
 	app = express()
 
 	app.use (req, res, next) ->
-		console.log notice 'Logger: %s %s', req.method, req.url
+		console.log notice "Logger: #{req.method}, #{req.url}"
 		next()
 
 	app.use "/sr", (req, res, next) ->
-		console.log notice 'Status request: %s %s', req.method, req.url
+		console.log notice "Status request: #{req.method}, #{req.url}"
+		console.log warn util.inspect(current_status)
 		res.json current_status
 
 	app.use express.bodyParser()
@@ -73,7 +74,7 @@ First, some setup:
 
 	# convenience function for sending text to the port
 	totinyg = (s) ->
-		console.log notice ">"+s 
+		console.log warn "Sending: "+s 
 		sp.write s+'\n'
 
 	# ask for a status report
@@ -92,7 +93,7 @@ an invocation from the Great Wizard Crockford that wards against broken JSON.
 		console.log "open"
 
 		# Set up prod to ask for regular status updates.
-		setInterval prod, 500
+		setInterval prod, 3000
 
 		sp.on "data", (data) ->
 			text = data.toString("ascii")
@@ -101,12 +102,14 @@ an invocation from the Great Wizard Crockford that wards against broken JSON.
 												.replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
 												.replace(/(?:^|:|,)(?:\s*\[)+/g, ''))
 				d = JSON.parse(text)
-				console.log notice text
-				if d.sr?
-					for own itemname, value of d.sr
-						console.log notice "#itemname is #value"
-						current_status[itemname] = value
-						# console.log(util.inspect(d))
-					 	# current_status = d
+				console.log warn text
+				# console.log warn "Recv: "+util.inspect(d)
+				sr = d.r.sr if d.r? 
+				sr = d.sr if d.sr?
+				console.log util.inspect(sr)
+				for own itemname, value of sr
+					# console.log notice "#{itemname} is #{value}"
+					current_status[itemname] = value
+				 	# current_status = d
 			else
 				 console.log error "Invalid JSON"

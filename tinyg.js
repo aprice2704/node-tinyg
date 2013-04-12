@@ -13,23 +13,24 @@
 
   clc = require("cli-color");
 
-  error = clc.red.bold;
+  error = clc.redBright.bold;
 
   warn = clc.yellow;
 
-  notice = clc.blue;
+  notice = clc.white;
 
   current_status = {};
 
   app = express();
 
   app.use(function(req, res, next) {
-    console.log(notice('Logger: %s %s', req.method, req.url));
+    console.log(notice("Logger: " + req.method + ", " + req.url));
     return next();
   });
 
   app.use("/sr", function(req, res, next) {
-    console.log(notice('Status request: %s %s', req.method, req.url));
+    console.log(notice("Status request: " + req.method + ", " + req.url));
+    console.log(warn(util.inspect(current_status)));
     return res.json(current_status);
   });
 
@@ -55,7 +56,7 @@
   });
 
   totinyg = function(s) {
-    console.log(notice(">" + s));
+    console.log(warn("Sending: " + s));
     return sp.write(s + '\n');
   };
 
@@ -68,25 +69,28 @@
 
   sp.on("open", function() {
     console.log("open");
-    setInterval(prod, 500);
+    setInterval(prod, 3000);
     return sp.on("data", function(data) {
-      var d, itemname, text, value, _ref, _results;
+      var d, itemname, sr, text, value, _results;
 
       text = data.toString("ascii");
       if (/^[\],:{}\s]*$/.test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
         d = JSON.parse(text);
-        console.log(notice(text));
-        if (d.sr != null) {
-          _ref = d.sr;
-          _results = [];
-          for (itemname in _ref) {
-            if (!__hasProp.call(_ref, itemname)) continue;
-            value = _ref[itemname];
-            console.log(notice("#itemname is #value"));
-            _results.push(current_status[itemname] = value);
-          }
-          return _results;
+        console.log(warn(text));
+        if (d.r != null) {
+          sr = d.r.sr;
         }
+        if (d.sr != null) {
+          sr = d.sr;
+        }
+        console.log(util.inspect(sr));
+        _results = [];
+        for (itemname in sr) {
+          if (!__hasProp.call(sr, itemname)) continue;
+          value = sr[itemname];
+          _results.push(current_status[itemname] = value);
+        }
+        return _results;
       } else {
         return console.log(error("Invalid JSON"));
       }

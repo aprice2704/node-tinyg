@@ -51,7 +51,7 @@ $('#updoer').click(function()
 		$('#status').html("Fetching...");
 		$.getJSON( "sr")
   		 .done(function( data ) {
-  		 	sr = data.r.sr;
+  		 	sr = data;
 			var stats = sr2table(sr); 
 			// console.log(stats);
 			$('#status').html(stats);
