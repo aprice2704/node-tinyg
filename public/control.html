@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset=utf-8>
+   <title>TinyG Control Panel</title>
+   <link rel="stylesheet" href="">
+   <script type="text/javascript" src="jquery.min.js"></script>
+</head>
+<body>
+	<H1>TinyG Control Panel ver 0.0.1</H1>
+	<p><button id="updoer">Update</button>
+	<div id="status">
+		crickets chirping
+   </div>
+   <p><input type="text" id="cmdtext"></input><button id="docmd">Send Command</button>
+</body>
+<script>
+
+function sr2table( sr)
+	{
+	return "<table border=1><tr><td>Line number:</td><td>"+sr.line+"</td></tr>" +
+				"<tr><td>X position:</td><td>"+sr.posx+" mm</td></tr>" +
+				"<tr><td>Y position:</td><td>"+sr.posy+" mm</td></tr>" +
+				"<tr><td>Z position:</td><td>"+sr.posz+" mm</td></tr>" +
+				"<tr><td>A position:</td><td>"+sr.posa+" deg</td></tr>" +
+				"<tr><td>Feed rate:</td><td>"+sr.feed+" mm/min</td></tr>" +
+				"<tr><td>Velocity:</td><td>"+sr.vel+" mm/min</td></tr>" +
+				"<tr><td>Units:</td><td>"+sr.unit+"</td></tr>" +
+				"<tr><td>Machine state:</td><td>"+sr.stat+"</td></tr><table>";
+	};
+
+$('#docmd').click(function()
+	{	
+	$.ajax({
+    	url: 'cmd',
+    	type: 'POST',
+    	data: $("#cmdtext").val(),
+    	contentType: 'application/json; charset=utf-8',
+    	dataType: 'json',
+    	async: false,
+    	success: function(msg) {
+         	// $('status').html(sr2table(data.r.sr));
+         	console.log("Sent ok")
+  			}
+  		});
+  	});
+
+
+$('#updoer').click(function()
+	{	
+		$('#status').html("Fetching...");
+		$.getJSON( "sr")
+  		 .done(function( data ) {
+  		 	sr = data.r.sr;
+			var stats = sr2table(sr); 
+			// console.log(stats);
+			$('#status').html(stats);
+			});
+	});
+
+</script>
+</html>
