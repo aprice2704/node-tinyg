@@ -1,0 +1,10 @@
+
+( Initialization file for MRBT Mill Mk 1)
+( Motor 1 is x axis, 1.8 degrees/step, 1/12in/rev, 1 microstep, clockwise, power off on idle )
+( Motor 2 is y axis, 1.8 degrees/step, 1/12in/rev, 1 microstep, clockwise, power off on idle )
+
+( Motor 3 is z axis, 1.8 degrees/step, 1/12in/rev, 1 microstep, clockwise, power off on idle )
+
+
+( Motor 4 is y axis, 1.8 degrees/step, 1/12in/rev, 1 microstep, clockwise, power off on idle )
+

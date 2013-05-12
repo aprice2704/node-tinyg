@@ -42,18 +42,18 @@ Need 404 response and restrictions on which files may be served.
 	app = express()
 
 	app.use (req, res, next) ->
-		console.log notice "Logger: #{req.method}, #{req.url}"
+		msg notice "Logger: #{req.method}, #{req.url}"
 		next()
 
 	app.use "/sr", (req, res, next) ->
-		console.log notice "Status request: #{req.method}, #{req.url}"
+		msg notice "Status request: #{req.method}, #{req.url}"
 		console.log warn util.inspect(current_status)
 		res.json current_status
 
 	app.use express.bodyParser()
 
 	app.use "/cmd", (req, res, next) ->
-		console.log warn 'Command: %s %s', req.url, util.inspect(req.body)
+		msg warn 'Command: %s %s', req.url, util.inspect(req.body)
 		totinyg JSON.stringify(req.body)
 		res.json current_status
 
@@ -82,7 +82,17 @@ First, some setup:
 		s = '{"sr":""}'
 	#   console.log "Sending "+s
 		sp.write s+'\n'
+		process.stdout.write( clc.moveTo(1, 23))
+		process.stdout.write( "#{Math.round(process.uptime())}: sending: #{s}")
 
+	# Display messages lower down the screen
+	msg = (s) ->
+		process.stdout.write( clc.moveTo(1, 25))
+		process.stdout.write( "#{Math.round(process.uptime())}: #{s}")
+
+	# Initialize for MRBT Mk 1 mill
+	# NC switches, only Y connected just now
+	init_cmds = ["ST 1", "XSN 0", "XSX 0", "YSN 3", "YSX 3", "ZSN 0", "ZSX 0", "ASN 0", "ASX 0"]
 
 Once the port is open the 'open' event is fired and the following function gets called. It, in turn, defines the action to
 perform when a 'data' event is fired. The big regexp is
@@ -90,26 +100,31 @@ an invocation from the Great Wizard Crockford that wards against broken JSON.
 
 	sp.on "open", ->
 
-		console.log "open"
+		process.stdout.write clc.reset
+		process.stdout.write clc.moveTo(1,1) + "Node TinyG"
+		process.stdout.write clc.moveTo(1,2) + "Port opened"
+		msg "open"
 
 		# Set up prod to ask for regular status updates.
-		setInterval prod, 3000
+		setInterval prod, 2000
 
 		sp.on "data", (data) ->
 			text = data.toString("ascii")
+			msg text
 	#      console.log(s)
 			if /^[\],:{}\s]*$/.test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@')
 												.replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']')
 												.replace(/(?:^|:|,)(?:\s*\[)+/g, ''))
 				d = JSON.parse(text)
-				console.log warn text
+				msg warn text
 				# console.log warn "Recv: "+util.inspect(d)
 				sr = d.r.sr if d.r? 
 				sr = d.sr if d.sr?
-				console.log util.inspect(sr)
 				for own itemname, value of sr
 					# console.log notice "#{itemname} is #{value}"
 					current_status[itemname] = value
-				 	# current_status = d
+
+				process.stdout.write( clc.moveTo(1, 3))
+				process.stdout.write( util.inspect(current_status))
 			else
-				 console.log error "Invalid JSON"
+				 msg error("Invalid JSON")
